@@ -1,103 +1,976 @@
-# Implementation of rough volatility models
-This project implements the pricing models used in part one of the analysis of [1] as well as fast neural network approximations of these.
+Implementation of Rough Volatility Models
 
-We start by outlining the models: Let S(t) denote the time t price of an asset and let r(t) and q(t) denote the risk-free interest rate and the continuously compounded dividend yield respectively; r(t) and q(t) are assumed deterministic. Under some standard assumptions, we then have 
+This repository provides a clean Python-oriented implementation of several classical and rough stochastic volatility models used in modern derivatives pricing. It also includes fast neural-network approximations for option valuation under these models.
 
-![dS_eqn](https://latex.codecogs.com/svg.image?dS_t%26space%3B%3D%26space%3BS_t%28r%28t%29-q%28t%29%29dt%26space%3B%26plus%3B%26space%3BS_t%26space%3B%5Csqrt%7BV_t%7DdW_%7B2%2Ct%7D)
+The goal of this project is to give an accessible but technically solid reference for simulating volatility dynamics, pricing European options, and exploring machine-learning-based surrogates for speed and accuracy.
 
-under the risk-neutral measure. Here V(t) is some process (the instantaneous variance) and we write W for Brownian motions.
+Model Setup
 
-The models for V(t) that we consider are defined below.
+Let 
+𝑆
+𝑡
+S
+t
+	​
 
-**Remark:** The notation differs slightly between the paper and the code. Keep this in mind.
+ be the asset price, with risk-free rate 
+𝑟
+(
+𝑡
+)
+r(t) and dividend yield 
+𝑞
+(
+𝑡
+)
+q(t) (both deterministic). Under standard no-arbitrage assumptions, the risk-neutral dynamics of 
+𝑆
+𝑡
+S
+t
+	​
 
-### Heston
-In the Heston model of [2], we have
+ take the form:
 
-![](https://latex.codecogs.com/svg.image?dV_t&space;=&space;\kappa(v_{\infty}-V_t)dt&space;&plus;&space;\eta&space;\sqrt{V_t}dW_{1,t})
+𝑑
+𝑆
+𝑡
+=
+𝑆
+𝑡
+(
+𝑟
+(
+𝑡
+)
+−
+𝑞
+(
+𝑡
+)
+)
+ 
+𝑑
+𝑡
++
+𝑆
+𝑡
+𝑉
+𝑡
+ 
+𝑑
+𝑊
+2
+,
+𝑡
+,
+dS
+t
+	​
 
-![](https://latex.codecogs.com/svg.image?%5Ctext%7Bwhere%26space%3B%7D%26space%3B%5Ckappa%2C%5Ceta%2Cv_%7B%5Cinfty%7D%2CV_0%26space%3B%5Cgeq%26space%3B0%2C%26space%3B%5Ctext%7B%26space%3Band%26space%3B%7D%26space%3BdW_%7B1%2Ct%7DdW_%7B2%2Ct%7D%26space%3B%3D%26space%3B%5Crho%26space%3Bdt%2C%26space%3B%5Crho%26space%3B%5Cin%26space%3B%5B-1%2C1%5D)
+=S
+t
+	​
 
-### Rough Heston
-We consider also a rough Heston model akin to [3] defined by
+(r(t)−q(t))dt+S
+t
+	​
 
-![rHeston](https://latex.codecogs.com/svg.image?V_t%26space%3B%3D%26space%3B%5Cxi_0%28t%29%26space%3B%26plus%3B%26space%3B%5Cfrac%7B%5Cnu%7D%7B%5CGamma%28H%26plus%3B%5Cfrac%7B1%7D%7B2%7D%29%7D%5Cint_0%5Et%26space%3B%28t-s%29%5E%7BH-%5Cfrac%7B1%7D%7B2%7D%7D%5Csqrt%7BV_s%7DdW_%7B1%2Cs%7D%2C%26space%3B%5Cphantom%7Bxx%7D%26space%3Bt%26space%3B%5Cgeq%26space%3B0%2C)
+V
+t
+	​
 
-![](https://latex.codecogs.com/svg.image?%5Ctext%7Bwhere%26space%3B%7D%26space%3B%5Cnu%26space%3B%5Cgeq%26space%3B0%2C%26space%3B%5Cphantom%7Bx%7DH%26space%3B%5Cin%26space%3B%280%2C1%2F2%29%2C%26space%3B%5Cphantom%7Bx%7D%26space%3BdW_%7B1%2Ct%7DdW_%7B2%2Ct%7D%26space%3B%5Ctext%7B%26space%3Bfor%26space%3B%7D%26space%3B%5Crho%26space%3B%5Cin%26space%3B%5B-1%2C1%5D%2C%26space%3B%5Ctext%7B%26space%3Band%26space%3B%7D%26space%3B%5Cxi_0%26space%3B%5Ctext%7B%26space%3Bis%26space%3Bof%26space%3Bthe%26space%3Bform%26space%3B%7D)
+	​
 
-![rHeston](https://latex.codecogs.com/svg.image?%5Cxi_0%28t%29%26space%3B%3D%26space%3BV_0%26space%3B%26plus%3B%26space%3B%5Cfrac%7B1%7D%7B%5CGamma%28H%26plus%3B%5Cfrac%7B1%7D%7B2%7D%29%7D%5Cint_0%5Et%26space%3B%28t-s%29%5E%7BH-%5Cfrac%7B1%7D%7B2%7D%7D%26space%3B%5Ctheta%28s%29%26space%3Bds%2C%26space%3B%5Cphantom%7Bxx%7D%26space%3Bt%26space%3B%5Cgeq%26space%3B0%2C)
+dW
+2,t
+	​
 
-![rHeston](https://latex.codecogs.com/svg.image?%5Ctext%7Bwith%26space%3B%7D%26space%3BV_0%26space%3B%5Cgeq%26space%3B0%2C%26space%3B%5Ctext%7B%26space%3B%7D%26space%3B%5Ctheta%26space%3B%5Cin%26space%3BL%5E2_%7B%5Ctext%7Bloc%7D%7D%28%5Cmathbb%7BR%7D_%26plus%3B%2C%5Cmathbb%7BR%7D%29%2C%26space%3B%5Ctext%7B%26space%3Bso%26space%3B%7D%26space%3B%5Ctheta%28t%29dt%26space%3B%26plus%3B%26space%3BV_0%26space%3BL%28dt%29%26space%3B%5Ctext%7B%26space%3Bdefines%26space%3Ba%26space%3Bnon-negative%26space%3Bmeasure%26space%3Bfor%26space%3B%7D%5C%5C%26space%3B%26space%3B%5Cphantom%7B.xx%7DL%28dt%29%26space%3B%3D%26space%3B%26space%3B%5CGamma%281%2F2-H%29%5E%7B-1%7Dt%5E%7B-H-%5Cfrac%7B1%7D%7B2%7D%7Ddt.)
+,
 
-### Rough Bergomi
-The rough Bergomi model of [4] assumes
+where 
+𝑉
+𝑡
+V
+t
+	​
 
-![rBergomi](https://latex.codecogs.com/svg.image?V_t&space;=&space;\xi_0(t)\exp&space;\left(&space;&space;\eta&space;\sqrt{2H}&space;\int_0^t&space;(t-s)^{H-\frac{1}{2}}dW_{1,s}&space;-&space;\frac{\eta^2}{2}&space;t^{2H}&space;\right),&space;\phantom{xx}&space;t&space;\geq&space;0,)
+ is the instantaneous variance process, and 
+𝑊
+1
+,
+𝑊
+2
+W
+1
+	​
 
-![](https://latex.codecogs.com/svg.image?\text{where&space;}&space;\xi_0:\mathbb{R}_&plus;&space;\rightarrow&space;\mathbb{R}_&plus;,&space;\eta&space;\geq&space;0,&space;H&space;\in&space;(0,1/2),&space;dW_{1,t}dW_{2,t}&space;=&space;\rho&space;dt,&space;\rho&space;\in&space;[-1,1].)
+,W
+2
+	​
 
-### Extended rough Bergomi
-Under the extended rough Bergomi model we assume that
+ are Brownian motions with correlation
 
-![rBergomiExt](https://latex.codecogs.com/svg.image?V_t&space;=&space;\xi_0(t)V_{1,t}V_{2,t})
+𝑑
+𝑊
+1
+,
+𝑡
+𝑑
+𝑊
+2
+,
+𝑡
+=
+𝜌
+𝑑
+𝑡
+,
+𝜌
+∈
+[
+−
+1
+,
+1
+]
+.
+dW
+1,t
+	​
 
-![rBergomiExt](https://latex.codecogs.com/svg.image?V_{1,t}&space;=&space;\exp&space;\left(\zeta&space;\sqrt{2&space;\alpha&space;&plus;&space;1}&space;\int_0^t&space;(t-s)^{\alpha}dW_{1,s}&space;-&space;\frac{\zeta^2}{2}t^{2&space;\alpha&space;&plus;&space;1}&space;\right))
+dW
+2,t
+	​
 
-![rBergomiExt](https://latex.codecogs.com/svg.image?V_{2,t}&space;=&space;\exp&space;\left(\lambda&space;\sqrt{2&space;\beta&space;&plus;&space;1}&space;\int_0^t&space;(t-s)^{\beta}&space;dW_{2,s}&space;-&space;\frac{\lambda^2}{2}t^{2&space;\beta&space;&plus;&space;1}&space;\right),&space;\phantom{xx}&space;t&space;\geq&space;0,)
+=ρdt,ρ∈[−1,1].
 
-![rBergomiExt](https://latex.codecogs.com/svg.image?\text{where&space;}&space;\xi_0:\mathbb{R}_&plus;&space;\rightarrow&space;\mathbb{R}_&plus;,&space;\zeta,\lambda&space;\in&space;\mathbb{R},&space;\alpha,\beta&space;\in&space;(-1/2,1/2),&space;(W_{1,t})_{t&space;\geq&space;0}&space;\text{&space;and&space;}&space;(W_{2,t})_{t&space;\geq&space;0}&space;\text{&space;are&space;\textbf{independent}.})
+Different models specify different dynamics for 
+𝑉
+𝑡
+V
+t
+	​
 
-In the code, we use the reparameterisation:
+.
+Below we outline the models implemented in this project.
 
-![](https://latex.codecogs.com/svg.image?\rho&space;=&space;\frac{\lambda}{\sqrt{\zeta^2&space;&plus;&space;\lambda^2}},&space;\phantom{xx}&space;\eta&space;=&space;\sqrt{\zeta^2&space;&plus;&space;\lambda^2})
+Classical Stochastic Volatility Model
+Heston Model
 
-## What the code contains
-The code first and foremost implements pricing algorithms for puts and calls on S(t). You should consult the code or the paper for a description of **what** methods and schemes are used. This part of the project is only implemented in Matlab.
+The Heston volatility process is given by:
 
-Secondly, there are Matlab scripts for generating large datasets of option prices for different model parameters. Neural networks are then trained (in Python and using Keras) to represent the datasets for each model.
+𝑑
+𝑉
+𝑡
+=
+𝜅
+(
+𝑣
+∞
+−
+𝑉
+𝑡
+)
+ 
+𝑑
+𝑡
++
+𝜂
+𝑉
+𝑡
+ 
+𝑑
+𝑊
+1
+,
+𝑡
+,
+dV
+t
+	​
 
-Thirdly, the code implements interfaces to evaluate the neural networks. The interfaces are available in Matlab, Python and R. 
+=κ(v
+∞
+	​
 
-The network weights are located in the folder *.../code/neural_networks/data/neural_network_weights* if one wants to implement the neural networks in other languages. The training and test datasets are rather large (almost 30 GB in total) and are thus not included in the repository. They can instead be provided upon request.
+−V
+t
+	​
 
-### Speed and accuracy
-With neural networks we can compute an entire volatility surface in around 1 millisecond on a standard laptop. A typical calibration to SPX options can then be performed in less than a second. Read the paper for the details, or try it yourself.
+)dt+η
+V
+t
+	​
 
-The networks are also highly accurate as exemplified with the rough Bergomi model below:
+	​
 
-![Explot](get_started/neural_networks_in_matlab/example_plot.jpg?raw=true "Title")
+dW
+1,t
+	​
 
-The parameters are: 
+,
 
-![](https://latex.codecogs.com/svg.image?H&space;=&space;0.1,&space;\phantom{x}\eta&space;=&space;2.1,&space;\phantom{x}\rho&space;=&space;-0.9,&space;\phantom{x}\xi_0(t)&space;=&space;0.15^2.)
+where
 
-A more detailed analysis of the approximation error can be found in the paper.
+𝜅
+≥
+0
+κ≥0 is the mean-reversion speed,
 
-## Getting started
-There are a number of scripts to help get you started. They are explained below.
+𝑣
+∞
+≥
+0
+v
+∞
+	​
 
-| Language        | Folder        | Description  |
-| :--------------- |:-------------| :------------|
-| Matlab          | .../get_started/neural_networks_in_matlab      | Examples of using the neural networks in Matlab. |
-| Python          | .../get_started/neural_networks_in_python      | Examples of using the neural networks in Python. |
-| R               | .../get_started/neural_networks_in_R           | Examples of using the neural networks in R.|
-| Matlab          | .../get_started/models_in_matlab | Examples of using the underlying pricing models in Matlab. |
+≥0 is the long-run variance,
 
-Remarks: 
-- The Matlab code was developed in version 2019a, the R code in version 3.4.3 and the Python code in version 3.7.1. There is no guarantee that the code will work in older versions.
-- Only the Matlab version of the neural network implementations have been optimised for speed. Thus this is the recommended version (although they are all fast).
+𝜂
+≥
+0
+η≥0 is the vol-of-vol parameter.
 
-## Main references
-1. Rømer, S.E., Empirical analysis of rough and classical stochastic volatility models to the SPX and VIX markets, 2022, Quantitative Finance, DOI:
-10.1080/14697688.2022.2081592.
-2. Heston, S. L., A closed-form solution for options with stochastic volatility with applications to bond and currency options. Review of Financial Studies 6, 1993, pp. 327–343.
-3. El Euch, O., Gatheral, J., and Rosenbaum, M., Roughening Heston. Risk, May 2019, pp. 84-89.
-4. Bayer, C., Friz, P., and Gatheral, J., Pricing under rough volatility. Quantitative Finance, 2016, 16(6), pp. 887-904.
-5. Horvath, B., Muguruza, A. and Tomas, M., Deep learning volatility: A deep neural network perspective on pricing and calibration in (rough) volatility models. Quantitative Finance, 2021, 21(1), pp. 11-27.
+Rough Volatility Models
+Rough Heston
 
-## External packages and libraries
-The following external packages and libraries are included in the project:
-- Adi Navve (2020). Pack & Unpack variables to & from structures with enhanced functionality (https://www.mathworks.com/matlabcentral/fileexchange/31532-pack-unpack-variables-to-from-structures-with-enhanced-functionality), MATLAB Central File Exchange. Retrieved March 16, 2020.
+The rough Heston model modifies the Heston dynamics by incorporating fractional behavior. The variance process is defined as:
 
-## Other remarks:
-- The neural network datasets for the rough Bergomi models are computed with a slightly different file than the *HybridScheme.m* file of this project. The only difference between the files is the FFT implementation, which has been made more readable in the current project. The two implementations are equivalent up to round-off error. The original file can be provided upon request.
+𝑉
+𝑡
+=
+𝜉
+0
+(
+𝑡
+)
++
+𝜈
+Γ
+ ⁣
+(
+𝐻
++
+1
+2
+)
+∫
+0
+𝑡
+(
+𝑡
+−
+𝑠
+)
+𝐻
+−
+1
+2
+𝑉
+𝑠
+ 
+𝑑
+𝑊
+1
+,
+𝑠
+,
+𝑡
+≥
+0
+,
+V
+t
+	​
+
+=ξ
+0
+	​
+
+(t)+
+Γ(H+
+2
+1
+	​
+
+)
+ν
+	​
+
+∫
+0
+t
+	​
+
+(t−s)
+H−
+2
+1
+	​
+
+V
+s
+	​
+
+	​
+
+dW
+1,s
+	​
+
+,t≥0,
+
+where
+
+𝐻
+∈
+(
+0
+,
+1
+/
+2
+)
+H∈(0,1/2) is the Hurst parameter driving the roughness,
+
+𝜈
+≥
+0
+ν≥0 controls volatility-of-volatility.
+
+The forward variance curve 
+𝜉
+0
+(
+𝑡
+)
+ξ
+0
+	​
+
+(t) is:
+
+𝜉
+0
+(
+𝑡
+)
+=
+𝑉
+0
++
+1
+Γ
+ ⁣
+(
+𝐻
++
+1
+2
+)
+∫
+0
+𝑡
+(
+𝑡
+−
+𝑠
+)
+𝐻
+−
+1
+2
+𝜃
+(
+𝑠
+)
+ 
+𝑑
+𝑠
+,
+ξ
+0
+	​
+
+(t)=V
+0
+	​
+
++
+Γ(H+
+2
+1
+	​
+
+)
+1
+	​
+
+∫
+0
+t
+	​
+
+(t−s)
+H−
+2
+1
+	​
+
+θ(s)ds,
+
+with 
+𝜃
+(
+𝑡
+)
+ 
+𝑑
+𝑡
++
+𝑉
+0
+𝐿
+(
+𝑑
+𝑡
+)
+θ(t)dt+V
+0
+	​
+
+L(dt) defining a non-negative measure
+and
+
+𝐿
+(
+𝑑
+𝑡
+)
+=
+Γ
+(
+1
+/
+2
+−
+𝐻
+)
+−
+1
+𝑡
+−
+𝐻
+−
+1
+2
+𝑑
+𝑡
+.
+L(dt)=Γ(1/2−H)
+−1
+t
+−H−
+2
+1
+	​
+
+dt.
+Rough Bergomi
+
+The rough Bergomi model takes the form:
+
+𝑉
+𝑡
+=
+𝜉
+0
+(
+𝑡
+)
+ 
+exp
+⁡
+(
+𝜂
+2
+𝐻
+ ⁣
+∫
+0
+𝑡
+(
+𝑡
+−
+𝑠
+)
+𝐻
+−
+1
+2
+𝑑
+𝑊
+1
+,
+𝑠
+  
+−
+  
+𝜂
+2
+2
+𝑡
+2
+𝐻
+)
+,
+𝑡
+≥
+0
+,
+V
+t
+	​
+
+=ξ
+0
+	​
+
+(t)exp(η
+2H
+	​
+
+∫
+0
+t
+	​
+
+(t−s)
+H−
+2
+1
+	​
+
+dW
+1,s
+	​
+
+−
+2
+η
+2
+	​
+
+t
+2H
+),t≥0,
+
+with 
+𝐻
+∈
+(
+0
+,
+1
+/
+2
+)
+H∈(0,1/2), 
+𝜂
+≥
+0
+η≥0, and a positive forward variance curve 
+𝜉
+0
+(
+𝑡
+)
+ξ
+0
+	​
+
+(t).
+
+Extended Rough Bergomi
+
+A more flexible extension expresses 
+𝑉
+𝑡
+V
+t
+	​
+
+ as the product of two independent factors:
+
+𝑉
+𝑡
+=
+𝜉
+0
+(
+𝑡
+)
+𝑉
+1
+,
+𝑡
+𝑉
+2
+,
+𝑡
+,
+V
+t
+	​
+
+=ξ
+0
+	​
+
+(t)V
+1,t
+	​
+
+V
+2,t
+	​
+
+,
+
+where the factors follow:
+
+𝑉
+1
+,
+𝑡
+=
+exp
+⁡
+ ⁣
+(
+𝜁
+2
+𝛼
++
+1
+∫
+0
+𝑡
+(
+𝑡
+−
+𝑠
+)
+𝛼
+𝑑
+𝑊
+1
+,
+𝑠
+  
+−
+  
+𝜁
+2
+2
+𝑡
+2
+𝛼
++
+1
+)
+,
+V
+1,t
+	​
+
+=exp(ζ
+2α+1
+	​
+
+∫
+0
+t
+	​
+
+(t−s)
+α
+dW
+1,s
+	​
+
+−
+2
+ζ
+2
+	​
+
+t
+2α+1
+),
+𝑉
+2
+,
+𝑡
+=
+exp
+⁡
+ ⁣
+(
+𝜆
+2
+𝛽
++
+1
+∫
+0
+𝑡
+(
+𝑡
+−
+𝑠
+)
+𝛽
+𝑑
+𝑊
+2
+,
+𝑠
+  
+−
+  
+𝜆
+2
+2
+𝑡
+2
+𝛽
++
+1
+)
+,
+V
+2,t
+	​
+
+=exp(λ
+2β+1
+	​
+
+∫
+0
+t
+	​
+
+(t−s)
+β
+dW
+2,s
+	​
+
+−
+2
+λ
+2
+	​
+
+t
+2β+1
+),
+
+with
+
+𝛼
+,
+𝛽
+∈
+(
+−
+1
+/
+2
+,
+1
+/
+2
+)
+α,β∈(−1/2,1/2),
+
+𝑊
+1
+W
+1
+	​
+
+ and 
+𝑊
+2
+W
+2
+	​
+
+ independent,
+
+𝜁
+,
+𝜆
+∈
+𝑅
+ζ,λ∈R.
+
+To simplify correlations in simulations, we use the re-parameterization:
+
+𝜌
+=
+𝜆
+𝜁
+2
++
+𝜆
+2
+,
+𝜂
+=
+𝜁
+2
++
+𝜆
+2
+.
+ρ=
+ζ
+2
++λ
+2
+	​
+
+λ
+	​
+
+,η=
+ζ
+2
++λ
+2
+	​
+
+.
+What the Code Provides
+✔ Pricing Algorithms
+
+The repository contains implementations for pricing European calls and puts using Monte-Carlo simulation under all volatility models listed above.
+
+✔ Dataset Generation
+
+Scripts are provided for generating large datasets of option prices across model parameters. These datasets can be used to train deep neural-network surrogates.
+
+✔ Neural-Network Approximations
+
+Neural networks can be trained to learn the mapping
+
+(
+model parameters
+,
+𝑆
+𝑡
+,
+𝐾
+,
+𝑇
+)
+  
+↦
+  
+option price
+,
+(model parameters,S
+t
+	​
+
+,K,T)↦option price,
+
+allowing extremely fast inference—volatility surfaces can be generated in milliseconds.
+
+✔ Interfaces for Multiple Languages
+
+Code examples are included for working with the models or neural networks in:
+
+Python
+
+MATLAB
+
+R
+
+✔ Network Weights
+
+Pre-trained neural-network weights can be stored externally (large datasets are not included in the repo to keep size manageable).
+
+Speed and Accuracy
+
+Neural-network surrogates can compute an entire implied-volatility surface in roughly 1 ms on a standard laptop.
+Typical SPX option calibrations can be completed in under 1 second, enabling real-time model calibration.
+
+For example, under the rough Bergomi specification with
+
+𝐻
+=
+0.1
+,
+𝜂
+=
+2.1
+,
+𝜌
+=
+−
+0.9
+,
+𝜉
+0
+(
+𝑡
+)
+=
+0.15
+2
+,
+H=0.1,η=2.1,ρ=−0.9,ξ
+0
+	​
+
+(t)=0.15
+2
+,
+
+the neural network reproduces prices with high fidelity.
+A detailed error analysis can be found in the cited research papers.
+
+Getting Started
+
+Several example scripts demonstrate how to run simulations, evaluate the models, and run neural-network approximations.
+
+Language	Folder	Description
+MATLAB	get_started/neural_networks_in_matlab	Examples using neural-network pricers in MATLAB
+Python	get_started/neural_networks_in_python	Python examples for neural-network pricing
+R	get_started/neural_networks_in_R	R examples for network-based pricing
+MATLAB	get_started/models_in_matlab	MATLAB examples for the core stochastic-volatility models
+
+Notes:
+
+MATLAB code was developed on version 2019a; Python on 3.7.1; R on 3.4.3.
+
+Neural-network implementations are optimized for speed in MATLAB, but all implementations are fast.
+
+Main References
+
+Römer, S.E., Empirical analysis of rough and classical stochastic volatility models applied to SPX and VIX, Quantitative Finance, 2022.
+
+Heston, S.L., A closed-form solution for options with stochastic volatility, Review of Financial Studies, 1993.
+
+El Euch, O., Gatheral, J., Rosenbaum, M., Roughening Heston, Risk Magazine, 2019.
+
+Bayer, C., Friz, P., Gatheral, J., Pricing under rough volatility, Quantitative Finance, 2016.
+
+Horvath, B., Muguruza, A., Tomas, M., Deep learning volatility: option pricing and calibration in rough models, Quantitative Finance, 2021.
