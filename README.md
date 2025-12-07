@@ -8,7 +8,7 @@ $$
 dS_t = S_t \bigl(r(t) - q(t)\bigr)\,dt + S_t \sqrt{V_t}\, dW_{2,t},
 $$
 
-where \(V_t\) is the instantaneous variance process and \(W_1, W_2\) are Brownian motions with correlation
+where $(V_t)$ is the instantaneous variance process and $(W_1, W_2)$ are Brownian motions with correlation
 
 $$
 dW_{1,t} dW_{2,t} = \rho\, dt, \qquad \rho \in [-1,1].
