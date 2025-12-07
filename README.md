@@ -99,19 +99,6 @@ For such values, the neural network reproduces Monte Carlo prices with high accu
 
 ---
 
-## Getting Started
-
-The original implementation includes “getting started” examples in several languages, for instance:
-
-- MATLAB examples for using neural-network pricers,
-- Python examples for neural-network evaluation,
-- R examples for neural-network evaluation,
-- MATLAB examples for direct simulation and pricing under the stochastic volatility models.
-
-You can mirror or adapt this structure in this repository.
-
----
-
 ## References
 
 The models and methods here are based on the following references:
