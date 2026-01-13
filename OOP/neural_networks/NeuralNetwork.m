@@ -1,5 +1,5 @@
 classdef NeuralNetwork
-% Description: Implements a basic feed forward neural network.
+% Description: Implements a basic feed forward neural network
 %
 % Properties:
 %   weights:      [1xL cell] Cell array of weight matrices for each network layer.
