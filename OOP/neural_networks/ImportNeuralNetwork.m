@@ -1,5 +1,5 @@
 function nn = ImportNeuralNetwork(weightsfile,actFun)
-% Description: Imports a neural network.
+% Description: Imports a neural network
 %
 % Parameters:
 %   weightsfile:  [1x1 string] Full path to a json file containing the
