@@ -1,4 +1,4 @@
-function nn = ImportNeuralNetwork(weightsfile,actFun)
+function nn = ImportNeuralNetwork(weightsfile,actFun
 % Description: Imports a neural network
 %
 % Parameters:
