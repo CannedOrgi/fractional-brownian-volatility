@@ -1,4 +1,4 @@
-classdef rHestonClass < PricingModelClas
+classdef rHestonClass < PricingModelClass
 % Description: Implements the rough Heston model of (El Euch et al., 2019).
 %
 % We briefly explain the model: Let r(t), respectively delta(t), denote 
