@@ -1,5 +1,5 @@
 LoadNeuralNetwork <- function(json_file_path){
-# Description: Loads a neural network stored in a json file
+# Description: Loads a neural network stored in a json file.
   tmp <- fromJSON(json_file_path)
   nLayers <- (length(tmp)-4)/2
   
