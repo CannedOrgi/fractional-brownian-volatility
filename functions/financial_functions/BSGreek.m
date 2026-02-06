@@ -1,4 +1,4 @@
-function greekVal = BSGreek(greek,optType,s0,K,r,T,sig,q)
+function greekVal = BSGreek(greek,optType,s0,K,r,T,sig,q
 % Description: Implements the Black-Scholes greeks.
 %
 % Parameters: 
