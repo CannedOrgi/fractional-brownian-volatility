@@ -1,4 +1,4 @@
-function c = bscall(s0,K,r,T,sig2,q)
+function c = bscall(s0,K,r,T,sig2,q
 % Description: Implements the Black-Scholes call price formula. 
 %
 % Parameters:
