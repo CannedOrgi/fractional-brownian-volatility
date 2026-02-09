@@ -1,4 +1,4 @@
-function p = FourierPricing(idxCall,k,ttm,model
+function p = FourierPricing(idxCall,k,ttm,model)
 % Description: Returns prices of call or put options using Fourier pricing
 % techniques. The settings for the computations are set in the pricerSettings
 % property of the input model.
