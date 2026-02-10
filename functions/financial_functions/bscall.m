@@ -14,7 +14,7 @@ function c = bscall(s0,K,r,T,sig2,q)
 %
 
     if ~exist('q','var'); q = 0; end
-    F = s0.*exp((r-q).*T)
+    F = s0.*exp((r-q).*T);
     totalVar = T.*sig2;
     totalStd = sqrt(totalVar);
     logs0 = log(s0);
