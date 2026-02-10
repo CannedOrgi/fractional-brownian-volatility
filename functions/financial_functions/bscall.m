@@ -13,7 +13,7 @@ function c = bscall(s0,K,r,T,sig2,q)
 %   c:  [Nx1 or NxM] Prices.
 %
 
-    if ~exist('q','var'); q = 0; en
+    if ~exist('q','var'); q = 0; end
     F = s0.*exp((r-q).*T);
     totalVar = T.*sig2;
     totalStd = sqrt(totalVar);
