@@ -36,7 +36,7 @@ function obj = NeuralNetwork(weights,biases,actFun,scaleMeanIn,scaleStdIn,...
 %   obj: [1x1 NeuralNetwork] The neural network.
 %
 
-    obj.weights = weights;
+    obj.weights = weights
     obj.biases = biases;
     obj.actFun = actFun;
     obj.scaleMeanIn = scaleMeanIn;
