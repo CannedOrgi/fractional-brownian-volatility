@@ -1,4 +1,4 @@
-function [model, Txi] = LoadrHestonNeuralNetwork(projectFolder
+function [model, Txi] = LoadrHestonNeuralNetwork(projectFolder)
 % Description: Loads the neural network based implementation of the rough Heston 
 % model. Inputs should be given in the order: H, nu, rho, xi0, xi1, xi2,..., xi27.
 %
