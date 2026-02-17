@@ -37,7 +37,7 @@ EvaluateNeuralNetwork <- function(nn,x){
   val <- (nn$weights[[nLayers]]%*%val + nn$biases[[nLayers]])*nn$scaleStdOut + nn$scaleMeanOut
   return(val)
 }
-EvaluateModelInGri <- function(model,x){
+EvaluateModelInGrid <- function(model,x){
 # Description: Evaluates a model in the fixed contract grid.
   
   # Check bounds:
